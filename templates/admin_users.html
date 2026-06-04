@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Administración de usuarios{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card p-4 bg-white">
+      <h1 class="h5 mb-3"><i class="bi bi-person-plus me-2"></i>Crear usuario</h1>
+      <form method="post">
+        <div class="mb-3"><label class="form-label">Correo electrónico / usuario</label><input class="form-control" name="email" type="email" required><div class="form-text">Este correo será el usuario de ingreso y recibirá la clave temporal.</div></div>
+        <div class="mb-3"><label class="form-label">Nombre completo</label><input class="form-control" name="full_name" required></div>
+        <div class="mb-3"><label class="form-label">Rol base</label><select class="form-select" name="role">{% for key,label in ROLE_LABELS.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
+        <div class="alert alert-info small"><i class="bi bi-magic me-1"></i>La contraseña se generará automáticamente y el usuario deberá cambiarla al ingresar.</div>
+        <button class="btn btn-primary w-100"><i class="bi bi-send"></i>Crear y enviar acceso</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card p-4 bg-white">
+      <h1 class="h5 mb-3"><i class="bi bi-people me-2"></i>Usuarios</h1>
+      <div class="table-responsive">
+        <table class="table align-middle user-table">
+          <thead><tr><th>Usuario / correo</th><th>Rol</th><th>Estado</th><th>Permisos</th><th></th></tr></thead>
+          <tbody>
+          {% for user in users %}
+            <tr>
+              <td>{{ user.display_name }}<div class="small text-secondary">{{ user.username }}</div></td>
+              <td>{{ ROLE_LABELS.get(user.role, user.role) }}</td>
+              <td>{% if user.is_active %}<span class="badge text-bg-success"><i class="bi bi-check-circle me-1"></i>Activo</span>{% else %}<span class="badge text-bg-secondary"><i class="bi bi-pause-circle me-1"></i>Inactivo</span>{% endif %}{% if user.must_change_password %}<div class="small text-warning mt-1"><i class="bi bi-exclamation-triangle me-1"></i>Cambio pendiente</div>{% endif %}</td>
+              <td><div class="permission-badges small">
+                {% if user.can_create_projects %}<span class="badge text-bg-light">Proyectos</span>{% endif %}
+                {% if user.can_join_projects %}<span class="badge text-bg-light">Asociarse</span>{% endif %}
+                {% if user.can_manage_records %}<span class="badge text-bg-light">Incidencias</span>{% endif %}
+                {% if user.can_manage_users %}<span class="badge text-bg-light">Usuarios</span>{% endif %}
+                {% if user.can_view_audit %}<span class="badge text-bg-light">Auditoría</span>{% endif %}
+                {% if not user.can_create_projects and not user.can_join_projects and not user.can_manage_records and not user.can_manage_users and not user.can_view_audit %}<span class="text-secondary">Solo consulta</span>{% endif %}
+              </div></td>
+              <td>
+                <div class="table-actions">
+                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_user_edit', user_id=user.id) }}" title="Editar usuario"><i class="bi bi-pencil-square"></i>Editar</a>
+                  <form method="post" action="{{ url_for('admin_user_resend_access', user_id=user.id) }}" data-confirm-submit="true" data-confirm-title="Confirmar acción" data-confirm-message="Se generará una nueva clave temporal y se enviará al correo del usuario. ¿Continuar?" data-confirm-text="Confirmar" data-confirm-variant="warning">
+                    <button class="btn btn-sm btn-outline-secondary" title="Generar y enviar nueva clave temporal"><i class="bi bi-envelope-arrow-up"></i>Reenviar</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

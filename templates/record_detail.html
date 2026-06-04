@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}{{ record.actual_result|truncate(80) if record.actual_result else 'Hallazgo sin descripción' }}{% endblock %}
+{% block content %}
+{% set can_manage_record = can_user_manage_record(record) %}
+{% set record_closed = record.status in CLOSED_STATUSES %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <a class="text-decoration-none small" href="{{ url_for('project_detail', project_id=record.project.id) }}">← Volver al proyecto</a>
+    <h1 class="h3 mt-2 mb-1">{{ record.actual_result|truncate(80) if record.actual_result else 'Hallazgo sin descripción' }}</h1>
+    <p class="text-secondary mb-0">Proyecto: {{ record.project.name }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if can_manage_record %}<a class="btn btn-outline-primary" href="{{ url_for('record_edit', record_id=record.id) }}"><i class="bi bi-pencil-square"></i> Editar</a>{% endif %}
+    {% if record_closed %}<span class="badge text-bg-success align-self-center"><i class="bi bi-lock-fill"></i> Novedad cerrada</span>{% endif %}
+    <a class="btn btn-outline-success" href="{{ url_for('project_report_xlsx', project_id=record.project.id) }}">Excel proveedor</a>
+    <a class="btn btn-outline-danger" href="{{ url_for('project_report_pdf', project_id=record.project.id) }}">PDF pendientes</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card p-4 bg-white mb-4">
+      <h2 class="h5 mb-3">Información general</h2>
+      <ul class="list-unstyled mb-0 small">
+        <li class="mb-2"><strong>Módulo:</strong> {{ record.module_name or 'N/A' }}</li>
+        <li class="mb-2"><strong>Ambiente:</strong> {{ record.environment or 'N/A' }}</li>
+        <li class="mb-2"><strong>Navegador / dispositivo:</strong> {{ record.browser or 'N/A' }}</li>
+        <li class="mb-2"><strong>Tipo de prueba:</strong> {{ record.test_type }}</li>
+        <li class="mb-2"><strong>Estado:</strong> {{ record.status }}</li>
+        <li class="mb-2"><strong>Severidad:</strong> {{ record.severity }}</li>
+        <li class="mb-2"><strong>Prioridad:</strong> {{ record.priority }}</li>
+        <li class="mb-2"><strong>Responsable:</strong> {{ record.responsible or 'N/A' }}</li>
+        <li class="mb-2"><strong>Fecha ejecución:</strong> {{ record.execution_date.strftime('%Y-%m-%d %H:%M') if record.execution_date else 'N/A' }}</li>
+        <li><strong>Fecha cierre:</strong> {{ record.resolved_at.strftime('%Y-%m-%d %H:%M') if record.resolved_at else 'Sin cierre' }}</li>
+      </ul>
+    </div>
+
+    {% if record_closed %}
+    <div class="alert alert-success"><i class="bi bi-lock-fill"></i> Esta novedad fue cerrada como <strong>{{ record.status }}</strong>. No permite edición, cambio de estado ni modificación de evidencias.</div>
+    {% endif %}
+
+    {% if can_manage_record %}
+    <div class="card p-4 bg-white mb-4">
+      <h2 class="h5 mb-3">Actualizar estado</h2>
+      <form method="post" action="{{ url_for('record_status_update', record_id=record.id) }}">
+        <div class="mb-3">
+          <label class="form-label">Nuevo estado</label>
+          <select class="form-select" name="status">
+            {% for item in STATUS_OPTIONS %}
+              <option value="{{ item }}" {% if record.status == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Resultado de validación QA</label>
+          <textarea class="form-control" name="validation_notes" rows="4" placeholder="Indica si quedó subsanada o si se mantiene la novedad.">{{ record.validation_notes or '' }}</textarea>
+        </div>
+        <button class="btn btn-primary w-100">Guardar estado</button>
+      </form>
+    </div>
+
+    <div class="card p-4 bg-white">
+      <h2 class="h5 mb-3">Agregar evidencias</h2>
+      <form method="post" action="{{ url_for('record_evidence_add', record_id=record.id) }}" enctype="multipart/form-data">
+        <div class="paste-zone mb-3" data-paste-target="detail-evidences">
+          <div class="fw-semibold">Pega aquí capturas con Ctrl + V</div>
+          <div class="small text-secondary">Ideal para capturas rápidas sin guardarlas primero.</div>
+        </div>
+        <input class="form-control" type="file" id="detail-evidences" name="evidences" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.txt,.log,.mp4,image/*">
+        <div class="clipboard-preview mt-3" id="detail-clipboard-preview"></div>
+        <button class="btn btn-outline-primary w-100 mt-3">Cargar evidencias</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-8">
+    <div class="card p-4 bg-white mb-4">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h2 class="h5">Resultado esperado</h2>
+          <p class="text-secondary mb-0" style="white-space: pre-wrap;">{{ record.expected_result or 'Sin información registrada.' }}</p>
+        </div>
+        <div class="col-md-6">
+          <h2 class="h5">Resultado real</h2>
+          <p class="text-secondary mb-0" style="white-space: pre-wrap;">{{ record.actual_result or 'Sin información registrada.' }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="card p-4 bg-white mb-4">
+      <h2 class="h5">Validación QA / re-test</h2>
+      <p class="text-secondary mb-0" style="white-space: pre-wrap;">{{ record.validation_notes or 'Aún no se ha documentado una validación posterior.' }}</p>
+    </div>
+    <div class="card p-4 bg-white">
+      <h2 class="h5 mb-3">Evidencias</h2>
+      {% if record.evidences %}
+      <div class="row g-3">
+        {% for item in record.evidences %}
+          <div class="col-md-6">
+            <div class="border rounded-4 p-3 h-100">
+              {% if item.file_type in ['png', 'jpg', 'jpeg', 'gif', 'webp'] %}
+                <img src="{{ url_for('evidence_file', filename=item.file_name) }}" class="img-fluid preview-img w-100 mb-3" alt="evidencia">
+              {% endif %}
+              <div class="fw-semibold">{{ item.original_name }}</div>
+              <div class="small text-secondary mb-3">Cargado {{ item.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ url_for('evidence_file', filename=item.file_name) }}">Abrir</a>
+                {% if can_manage_record %}
+                <form method="post" action="{{ url_for('evidence_delete', evidence_id=item.id) }}" onsubmit="return confirm('¿Eliminar evidencia?');">
+                  <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}
+        <p class="text-secondary mb-0">No hay evidencias cargadas.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+  setupClipboardUpload({
+    inputId: 'detail-evidences',
+    zoneSelector: '[data-paste-target="detail-evidences"]',
+    previewId: 'detail-clipboard-preview'
+  });
+</script>
+{% endblock %}

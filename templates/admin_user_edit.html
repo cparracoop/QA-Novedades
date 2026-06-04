@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Editar usuario{% endblock %}
+{% block content %}
+<div class="card p-4 bg-white">
+  <h1 class="h4 mb-4">Editar usuario: {{ user.email or user.username }}</h1>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label">Nombre completo</label><input class="form-control" name="full_name" value="{{ user.full_name }}" required></div>
+      <div class="col-md-6"><label class="form-label">Correo electrónico / usuario</label><input class="form-control" name="email" type="email" value="{{ user.email or user.username }}" required><div class="form-text">Al cambiarlo, también cambia el usuario de ingreso.</div></div>
+      <div class="col-md-6"><label class="form-label">Rol base</label><select class="form-select" name="role">{% for key,label in ROLE_LABELS.items() %}<option value="{{ key }}" {% if user.role == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label">Nueva contraseña manual</label><input class="form-control" name="password" type="password" placeholder="Opcional; preferible usar Reenviar acceso"></div>
+      <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if user.is_active %}checked{% endif %}><label class="form-check-label" for="is_active">Usuario activo</label></div></div>
+      {% for field,label in [('can_create_projects','Crear/administrar proyectos'),('can_join_projects','Asociarse a proyectos'),('can_manage_records','Registrar/editar novedades'),('can_manage_users','Administrar usuarios'),('can_view_audit','Ver log de auditoría')] %}
+      <div class="col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="{{ field }}" id="{{ field }}" {% if user|attr(field) %}checked{% endif %}><label class="form-check-label" for="{{ field }}">{{ label }}</label></div></div>
+      {% endfor %}
+    </div>
+    <div class="alert alert-info small mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Crear/administrar proyectos no habilita registrar novedades. Para registrar o editar novedades, el usuario también debe tener “Registrar/editar novedades” y estar asociado al proyecto con autorización para registrar.</div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary">Guardar</button><a class="btn btn-outline-secondary" href="{{ url_for('admin_users') }}">Cancelar</a></div>
+  </form>
+</div>
+{% endblock %}

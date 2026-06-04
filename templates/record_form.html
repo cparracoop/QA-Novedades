@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if record else 'Registrar' }} novedad
+<style>
+.record-form-card{
+  box-shadow:0 14px 36px rgba(15,23,42,.08)!important;
+}
+.record-form-card .form-control,
+.record-form-card .form-select{
+  border-radius:.85rem;
+  min-height:42px;
+}
+.record-form-card textarea.form-control{
+  min-height:130px;
+}
+.record-form-card .form-label{
+  font-weight:600;
+}
+.paste-zone{
+  border-radius:1rem!important;
+}
+</style>
+
+{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white record-form-card">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+      <h2 class="h3 fw-bold mb-1"><i class="bi bi-clipboard2-check me-2 text-primary"></i>{{ 'Editar' if record else 'Registrar' }} novedad</h2>
+      {% if selected_project %}
+      <div class="text-secondary small">Proyecto actual: {{ selected_project.name }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <form method="post" enctype="multipart/form-data" id="record-form">
+    <div class="alert alert-primary-subtle border-0 rounded-4 mb-4">
+      <i class="bi bi-info-circle me-1"></i>
+      Registra la información mínima para hacer seguimiento al hallazgo. Las evidencias son opcionales.
+    </div>
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <span class="badge rounded-pill text-bg-primary">1</span>
+      <h3 class="h6 fw-bold mb-0">Información general</h3>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-5">
+        <label class="form-label">Proyecto</label>
+        <select class="form-select" name="project_id" required>
+          {% for project in projects %}
+            <option value="{{ project.id }}" {% if record and record.project_id == project.id %}selected{% elif selected_project and selected_project.id == project.id %}selected{% endif %}>{{ project.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Módulo</label>
+        <input class="form-control" name="module_name" required value="{{ record.module_name if record else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Ambiente</label>
+        <input class="form-control" name="environment" required placeholder="QA, Producción, UAT..." value="{{ record.environment if record else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Navegador / dispositivo</label>
+        <input class="form-control" name="browser" required value="{{ record.browser if record else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Tipo de prueba</label>
+        <select class="form-select" name="test_type">
+          {% for item in TEST_TYPE_OPTIONS %}
+            <option value="{{ item }}" {% if record and record.test_type == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Estado</label>
+        <select class="form-select" name="status">
+          {% for item in STATUS_OPTIONS %}
+            <option value="{{ item }}" {% if record and record.status == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Severidad</label>
+        <select class="form-select" name="severity">
+          {% for item in SEVERITY_OPTIONS %}
+            <option value="{{ item }}" {% if record and record.severity == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Prioridad</label>
+        <select class="form-select" name="priority">
+          {% for item in PRIORITY_OPTIONS %}
+            <option value="{{ item }}" {% if record and record.priority == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Responsable de atención</label>
+        <select class="form-select" name="responsible" required>
+          <option value="">Selecciona responsable</option>
+          {% for item in RESPONSIBLE_OPTIONS %}
+            <option value="{{ item }}" {% if record and record.responsible == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+  
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha y hora de ejecución</label>
+        <input class="form-control" type="datetime-local" name="execution_date" required value="{{ record.execution_date.strftime('%Y-%m-%dT%H:%M') if record and record.execution_date else '' }}">
+      </div>
+      <div class="col-12 mt-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge rounded-pill text-bg-primary">2</span>
+          <h3 class="h6 fw-bold mb-0">Descripción del hallazgo</h3>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Resultado esperado</label>
+        <textarea class="form-control" name="expected_result" rows="5" required placeholder="Describe lo que debería ocurrir.">{{ record.expected_result if record else '' }}</textarea>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Resultado real / descripción del hallazgo</label>
+        <textarea class="form-control" name="actual_result" rows="5" required placeholder="Describe la incidencia encontrada.">{{ record.actual_result if record else '' }}</textarea>
+      </div>
+      {% if record %}
+      <div class="col-12">
+        <label class="form-label">Resultado de validación QA</label>
+        <textarea class="form-control" name="validation_notes" rows="4" placeholder="Ejemplo: Se valida ajuste y queda subsanada, o se indica que requiere nueva revisión.">{{ record.validation_notes if record else '' }}</textarea>
+      </div>
+      {% endif %}
+      <div class="col-12 mt-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="badge rounded-pill text-bg-primary">3</span>
+          <h3 class="h6 fw-bold mb-0">Evidencias</h3>
+        </div>
+        <label class="form-label"><i class="bi bi-paperclip me-1"></i>Evidencias opcionales</label>
+        <div class="paste-zone mb-3" data-paste-target="evidences">
+          <div class="fw-semibold">Pega aquí capturas con Ctrl + V</div>
+          <div class="small text-secondary">También puedes arrastrar imágenes o usar el selector manual.</div>
+        </div>
+        <input class="form-control" type="file" id="evidences" name="evidences" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.txt,.log,.mp4,image/*">
+        <div class="form-text">Puedes guardar la novedad con o sin imágenes/evidencias. Las capturas pegadas desde el portapapeles se anexan automáticamente.</div>
+        <div class="clipboard-preview mt-3" id="clipboard-preview"></div>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn btn-primary"><i class="bi bi-save"></i>Guardar</button>
+      {% if selected_project %}
+      <a class="btn btn-outline-secondary" href="{{ url_for('project_detail', project_id=selected_project.id) }}">Cancelar</a>
+      {% else %}
+      <a class="btn btn-outline-secondary" href="{{ url_for('records') }}">Cancelar</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<style>
+.record-form-card{
+  box-shadow:0 14px 36px rgba(15,23,42,.08)!important;
+}
+.record-form-card .form-control,
+.record-form-card .form-select{
+  border-radius:.85rem;
+  min-height:42px;
+}
+.record-form-card textarea.form-control{
+  min-height:130px;
+}
+.record-form-card .form-label{
+  font-weight:600;
+}
+.paste-zone{
+  border-radius:1rem!important;
+}
+</style>
+
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+  setupClipboardUpload({
+    inputId: 'evidences',
+    zoneSelector: '[data-paste-target="evidences"]',
+    previewId: 'clipboard-preview'
+  });
+</script>
+
+<style>
+.record-form-card{
+  box-shadow:0 14px 36px rgba(15,23,42,.08)!important;
+}
+.record-form-card .form-control,
+.record-form-card .form-select{
+  border-radius:.85rem;
+  min-height:42px;
+}
+.record-form-card textarea.form-control{
+  min-height:130px;
+}
+.record-form-card .form-label{
+  font-weight:600;
+}
+.paste-zone{
+  border-radius:1rem!important;
+}
+</style>
+
+{% endblock %}

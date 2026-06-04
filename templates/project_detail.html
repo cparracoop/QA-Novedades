@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block content %}
+{% set can_edit_project = can_user_edit_project_details(project) %}
+{% set can_manage_members = can_user_manage_project_members(project) %}
+{% set can_create_record = can_user_create_record_in_project(project) %}
+
+<style>
+  .project-hero {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1.25rem;
+    background: var(--bs-card-bg);
+    box-shadow: 0 14px 34px rgba(15,23,42,.06);
+  }
+  .action-panel {
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-card-bg);
+    border-radius: 1rem;
+    padding: .75rem;
+  }
+  .action-group-label {
+    font-size: .72rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: .35rem;
+  }
+  .qa-metric-card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1.15rem;
+    background: var(--bs-card-bg);
+    box-shadow: 0 12px 28px rgba(15,23,42,.06);
+    height: 100%;
+  }
+  .qa-metric-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-grid;
+    place-items: center;
+    background: #eef5ff;
+    color: #0d6efd;
+  }
+  .metric-help { min-height: 38px; }
+  .btn-soft-danger { color:#dc3545; border-color:#fecaca; background:#fff7f7; }
+  .btn-soft-danger:hover { color:#fff; background:#dc3545; border-color:#dc3545; }
+</style>
+
+<div class="project-hero p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-4">
+    <div class="flex-grow-1">
+      <a class="text-decoration-none small" href="{{ url_for('projects') }}"><i class="bi bi-arrow-left"></i> Volver a proyectos</a>
+      <div class="d-flex align-items-center gap-2 mt-2 mb-1">
+        <span class="icon-badge"><i class="bi bi-folder2-open"></i></span>
+        <h1 class="h3 mb-0">{{ project.name }}</h1>
+      </div>
+      <p class="text-secondary mb-0">{{ project.description or 'Sin descripción registrada.' }}</p>
+    </div>
+
+    <div class="action-panel">
+      <div class="d-flex flex-wrap gap-3 align-items-stretch">
+        {% if can_create_record %}
+        <div>
+          <div class="action-group-label">Registro QA</div>
+          <a class="btn btn-primary" href="{{ url_for('project_record_create', project_id=project.id) }}">
+            <i class="bi bi-plus-circle"></i> Registrar incidencia
+          </a>
+        </div>
+        {% endif %}
+
+        <div>
+          <div class="action-group-label">Archivos</div>
+          <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-download"></i> Generar archivos
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('project_report_pdf', project_id=project.id) }}">
+                  <i class="bi bi-file-earmark-pdf text-danger"></i> PDF de pendientes
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('project_report_xlsx', project_id=project.id) }}">
+                  <i class="bi bi-file-earmark-excel text-success"></i> Excel para proveedor
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('project_report_csv', project_id=project.id) }}">
+                  <i class="bi bi-filetype-csv"></i> Exportar CSV completo
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {% if can_edit_project or can_manage_members %}
+        <div>
+          <div class="action-group-label">Administración</div>
+          <div class="btn-group" role="group" aria-label="Administración del proyecto">
+            {% if can_edit_project %}
+            <a class="btn btn-outline-primary" href="{{ url_for('project_edit', project_id=project.id) }}">
+              <i class="bi bi-pencil-square"></i> Editar
+            </a>
+            {% endif %}
+            {% if can_manage_members %}
+            <a class="btn btn-outline-secondary" href="{{ url_for('project_members', project_id=project.id) }}">
+              <i class="bi bi-people"></i> Usuarios
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% if current_user.is_admin or project.created_by_id == current_user.id %}
+        <div>
+          <div class="action-group-label">Zona crítica</div>
+          
+<button type="button" class="btn btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+  <i class="bi bi-trash me-1"></i>Eliminar
+</button>
+
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle mb-3" style="width:52px;height:52px;">
+            <i class="bi bi-exclamation-triangle fs-4"></i>
+          </div>
+          <h5 class="modal-title fw-bold" id="deleteProjectModalLabel">Confirmar eliminación del proyecto</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form method="post" action="{{ url_for('project_delete', project_id=project.id) }}">
+        <div class="modal-body pt-2">
+          <p class="text-secondary mb-3">
+            Esta acción eliminará el proyecto <strong>{{ project.name }}</strong> y todas sus novedades asociadas.
+            No se puede deshacer.
+          </p>
+          <div class="alert alert-warning rounded-3 small mb-3">
+            <i class="bi bi-shield-lock me-1"></i>
+            Por seguridad, confirma la acción digitando tu contraseña.
+          </div>
+          <label class="form-label">Contraseña</label>
+          <input type="password" class="form-control rounded-3" name="confirm_password" required autocomplete="current-password" placeholder="Digite su contraseña">
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger rounded-3">
+            <i class="bi bi-trash me-1"></i>Sí, eliminar proyecto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6 col-xl-3">
+    <div class="qa-metric-card p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <div class="text-secondary small fw-semibold">Incidencias abiertas</div>
+          <h3 class="display-6 fw-bold mb-1">{{ metrics.open }}</h3>
+          <div class="text-secondary small metric-help">Pendientes de análisis, corrección o validación.</div>
+        </div>
+        <span class="qa-metric-icon"><i class="bi bi-exclamation-circle"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="qa-metric-card p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <div class="text-secondary small fw-semibold">Pendientes proveedor</div>
+          <h3 class="display-6 fw-bold mb-1">{{ metrics.pending_vendor }}</h3>
+          <div class="text-secondary small metric-help">Abiertas cuyo responsable contiene “proveedor”.</div>
+        </div>
+        <span class="qa-metric-icon"><i class="bi bi-truck"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="qa-metric-card p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <div class="text-secondary small fw-semibold">Subsanadas</div>
+          <h3 class="display-6 fw-bold mb-1">{{ metrics.subsanadas }}</h3>
+          <div class="text-secondary small metric-help">Cerradas como corregidas después de validación QA.</div>
+        </div>
+        <span class="qa-metric-icon"><i class="bi bi-check2-circle"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="qa-metric-card p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <div class="text-secondary small fw-semibold">Alta severidad</div>
+          <h3 class="display-6 fw-bold mb-1">{{ metrics.high_severity }}</h3>
+          <div class="text-secondary small metric-help">Abiertas con severidad Alta o Crítica.</div>
+        </div>
+        <span class="qa-metric-icon"><i class="bi bi-lightning-charge"></i></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card p-4 bg-white">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-1">Pruebas y novedades del proyecto</h2>
+      <p class="text-secondary small mb-0">Consulta, filtra y abre el detalle de cada hallazgo del proyecto.</p>
+    </div>
+    <span class="badge text-bg-light border"><i class="bi bi-info-circle"></i> PDF: solo pendientes</span>
+  </div>
+
+  <form class="row g-3 mb-4" method="get">
+    <div class="col-md-10">
+      <label class="form-label">Estado</label>
+      <select class="form-select" name="status">
+        <option value="">Todos</option>
+        {% for item in STATUS_OPTIONS %}
+          <option value="{{ item }}" {% if current_status == item %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button class="btn btn-outline-secondary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Novedad</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Severidad</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>#{{ record.id }}</td>
+          <td>
+            <div class="fw-semibold">{{ record.actual_result|truncate(80) if record.actual_result else 'Hallazgo sin descripción' }}</div>
+            <div class="small text-secondary">{{ record.module_name or 'Sin módulo' }}</div>
+          </td>
+          <td>{{ record.test_type }}</td>
+          <td>
+            <span class="badge {% if record.status in CLOSED_STATUSES %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+              {{ record.status }}
+            </span>
+          </td>
+          <td>{{ record.severity }}</td>
+          <td class="text-end text-nowrap">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('record_detail', record_id=record.id) }}"><i class="bi bi-eye"></i> Abrir</a>
+            {% if can_user_manage_record(record) %}
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('record_edit', record_id=record.id) }}"><i class="bi bi-pencil"></i> Editar</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-secondary">No hay novedades para este proyecto.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

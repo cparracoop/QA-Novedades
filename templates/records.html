@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Vista general{% endblock %}
+{% block content %}
+<div class="card p-4 bg-white">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-0">Vista general de novedades</h2>
+      <div class="text-secondary small">Para trabajar de forma más ordenada, entra a cada proyecto.</div>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('projects') }}">Ir a proyectos</a>
+  </div>
+
+  <form class="row g-3 mb-4" method="get">
+    <div class="col-md-5">
+      <label class="form-label">Proyecto</label>
+      <select class="form-select" name="project_id">
+        <option value="">Todos</option>
+        {% for project in projects %}
+          <option value="{{ project.id }}" {% if current_project_id == project.id %}selected{% endif %}>{{ project.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-5">
+      <label class="form-label">Estado</label>
+      <select class="form-select" name="status">
+        <option value="">Todos</option>
+        {% for item in STATUS_OPTIONS %}
+          <option value="{{ item }}" {% if current_status == item %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button class="btn btn-outline-secondary w-100">Filtrar</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Novedad</th><th>Proyecto</th><th>Tipo</th><th>Estado</th><th>Severidad</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.actual_result|truncate(80) if record.actual_result else 'Hallazgo sin descripción' }}</td>
+          <td>{{ record.project.name if record.project else 'Sin proyecto' }}</td>
+          <td>{{ record.test_type }}</td>
+          <td><span class="badge {% if record.status in CLOSED_STATUSES %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ record.status }}</span></td>
+          <td>{{ record.severity }}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('record_detail', record_id=record.id) }}">Abrir</a>
+            {% if can_user_manage_record(record) %}
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('record_edit', record_id=record.id) }}">Editar</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-secondary">No hay registros para los filtros seleccionados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

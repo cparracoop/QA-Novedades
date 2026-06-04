@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="es">
+<head>
+
+<script>
+(function () {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-bs-theme', saved);
+})();
+</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}QA Novedades{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root { --brand: #0d6efd; --soft: #eef5ff; }
+    body { background: linear-gradient(180deg, #f4f8ff 0%, #f8fafc 48%, #ffffff 100%); }
+    .navbar-brand { font-weight: 800; letter-spacing: -.02em; }
+    .card { border: 0; border-radius: 1rem; box-shadow: 0 10px 28px rgba(15,23,42,.07); }
+    .metric-card { overflow: hidden; position: relative; }
+    .metric-card h3 { font-size: 2rem; margin-bottom: 0; }
+    .metric-icon { width: 44px; height: 44px; display: inline-grid; place-items: center; border-radius: 14px; background: var(--soft); color: var(--brand); }
+    .icon-badge { width: 36px; height: 36px; display:inline-grid; place-items:center; border-radius: 12px; background: #f1f5f9; color:#0f172a; }
+    .preview-img { max-height: 220px; object-fit: cover; border-radius: 1rem; }
+    .paste-zone { border: 2px dashed #93c5fd; border-radius: 1rem; padding: 1rem; background: #f8fbff; cursor: pointer; }
+    .paste-zone-active { border-color: #2563eb; background: #eff6ff; }
+    .clipboard-preview { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .clipboard-chip { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .75rem; background: #eef2ff; border-radius: 999px; font-size: .9rem; }
+    .nav-link .bi, .btn .bi { margin-right: .35rem; }
+
+    .table-actions { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; min-width: 190px; }
+    .permission-badges { display: flex; flex-wrap: wrap; gap: .25rem; max-width: 260px; }
+    .permission-badges .badge { white-space: normal; text-align: left; }
+    .table td, .table th { vertical-align: middle; }
+
+    .flash-modal-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.55rem;
+      flex: 0 0 auto;
+      background: #e7f1ff;
+      color: #0d6efd;
+    }
+    .flash-modal-icon.success { background: #d1e7dd; color: #198754; }
+    .flash-modal-icon.danger { background: #f8d7da; color: #dc3545; }
+    .flash-modal-icon.warning { background: #fff3cd; color: #b58100; }
+    .flash-modal-icon.info { background: #cff4fc; color: #087990; }
+
+    .app-confirm-modal .modal-content {
+      border-radius: 1.25rem;
+      border: 0;
+      box-shadow: 0 24px 70px rgba(15,23,42,.22);
+    }
+
+  
+/* =========================================================
+   MODO OSCURO COMPLETO
+   Corrige superficies blancas: cards, qa-card, hero, métricas,
+   tablas, formularios, modales, listas y clases Bootstrap light.
+========================================================= */
+
+html[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --bs-body-bg: #05070a;
+  --bs-body-color: #f8fafc;
+  --bs-secondary-color: #cbd5e1;
+  --bs-tertiary-bg: #111827;
+  --bs-border-color: #334155;
+  --bs-card-bg: #171c24;
+  --bs-card-color: #f8fafc;
+  --bs-table-bg: #171c24;
+  --bs-table-color: #f8fafc;
+  --bs-table-border-color: #334155;
+}
+
+html[data-bs-theme="dark"] body {
+  background: #05070a !important;
+  background-image: none !important;
+  color: #f8fafc !important;
+}
+
+/* Navbar */
+html[data-bs-theme="dark"] .navbar,
+html[data-bs-theme="dark"] nav.navbar,
+html[data-bs-theme="dark"] .bg-white,
+html[data-bs-theme="dark"] .bg-light,
+html[data-bs-theme="dark"] .text-bg-light {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Superficies propias de la app */
+html[data-bs-theme="dark"] .card,
+html[data-bs-theme="dark"] .qa-card,
+html[data-bs-theme="dark"] .project-hero,
+html[data-bs-theme="dark"] .action-panel,
+html[data-bs-theme="dark"] .qa-metric-card,
+html[data-bs-theme="dark"] .metric-card,
+html[data-bs-theme="dark"] .modal-content,
+html[data-bs-theme="dark"] .dropdown-menu,
+html[data-bs-theme="dark"] .list-group-item,
+html[data-bs-theme="dark"] .paste-zone,
+html[data-bs-theme="dark"] .clipboard-chip {
+  background: #171c24 !important;
+  background-color: #171c24 !important;
+  background-image: none !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.35) !important;
+}
+
+/* Hero un poco diferente para separar bloques */
+html[data-bs-theme="dark"] .project-hero {
+  background: #121821 !important;
+}
+
+/* Textos */
+html[data-bs-theme="dark"] h1,
+html[data-bs-theme="dark"] h2,
+html[data-bs-theme="dark"] h3,
+html[data-bs-theme="dark"] h4,
+html[data-bs-theme="dark"] h5,
+html[data-bs-theme="dark"] h6,
+html[data-bs-theme="dark"] p,
+html[data-bs-theme="dark"] label,
+html[data-bs-theme="dark"] span,
+html[data-bs-theme="dark"] small,
+html[data-bs-theme="dark"] div,
+html[data-bs-theme="dark"] .navbar-brand,
+html[data-bs-theme="dark"] .nav-link,
+html[data-bs-theme="dark"] .card-title,
+html[data-bs-theme="dark"] .card-text,
+html[data-bs-theme="dark"] .fw-semibold,
+html[data-bs-theme="dark"] .text-dark {
+  color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .text-secondary,
+html[data-bs-theme="dark"] .text-muted,
+html[data-bs-theme="dark"] .action-group-label {
+  color: #cbd5e1 !important;
+}
+
+/* Tablas */
+html[data-bs-theme="dark"] table,
+html[data-bs-theme="dark"] .table,
+html[data-bs-theme="dark"] .table > :not(caption) > * > * {
+  background-color: #171c24 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+html[data-bs-theme="dark"] .table-light,
+html[data-bs-theme="dark"] thead,
+html[data-bs-theme="dark"] thead tr,
+html[data-bs-theme="dark"] thead th {
+  background-color: #222a35 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html[data-bs-theme="dark"] tbody tr,
+html[data-bs-theme="dark"] tbody td {
+  background-color: #171c24 !important;
+  color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .table-hover tbody tr:hover td {
+  background-color: #222a35 !important;
+}
+
+/* Formularios */
+html[data-bs-theme="dark"] .form-control,
+html[data-bs-theme="dark"] .form-select,
+html[data-bs-theme="dark"] textarea,
+html[data-bs-theme="dark"] input {
+  background-color: #0b1017 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html[data-bs-theme="dark"] .form-control::placeholder,
+html[data-bs-theme="dark"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Botones claros */
+html[data-bs-theme="dark"] .btn-outline-secondary,
+html[data-bs-theme="dark"] .btn-outline-dark {
+  color: #f8fafc !important;
+  border-color: #64748b !important;
+}
+
+html[data-bs-theme="dark"] .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] .btn-outline-dark:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* Decorativos */
+html[data-bs-theme="dark"] .icon-badge,
+html[data-bs-theme="dark"] .metric-icon,
+html[data-bs-theme="dark"] .qa-metric-icon,
+html[data-bs-theme="dark"] .flash-modal-icon {
+  background-color: #263241 !important;
+  color: #f8fafc !important;
+}
+
+/* Alertas mantienen intención pero no fondo blanco */
+html[data-bs-theme="dark"] .alert {
+  background-color: #222a35 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Bordes */
+html[data-bs-theme="dark"] .border,
+html[data-bs-theme="dark"] .border-bottom,
+html[data-bs-theme="dark"] .border-top,
+html[data-bs-theme="dark"] .rounded-4 {
+  border-color: #334155 !important;
+}
+
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg bg-white border-bottom mb-4 sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}"><span class="icon-badge"><i class="bi bi-shield-check"></i></span> QA Novedades</a>
+    {% if current_user %}
+    <div class="navbar-nav gap-2">
+      <a class="nav-link" href="{{ url_for('projects') }}"><i class="bi bi-folder2-open"></i>Proyectos</a>
+      <a class="nav-link" href="{{ url_for('records') }}"><i class="bi bi-list-check"></i>Vista general</a>
+      {% if current_user.is_admin or current_user.can_manage_users %}<a class="nav-link" href="{{ url_for('admin_users') }}"><i class="bi bi-people"></i>Usuarios</a>{% endif %}
+      {% if current_user.is_admin or current_user.can_view_audit %}<a class="nav-link" href="{{ url_for('admin_audit') }}"><i class="bi bi-clock-history"></i>Auditoría</a>{% endif %}
+    </div>
+    <div class="ms-auto d-flex align-items-center gap-2 small">
+      <a class="btn btn-sm btn-outline-primary" href="{{ url_for('profile') }}"><i class="bi bi-person-circle"></i>{{ current_user.display_name }}</a>
+      
+<button class="btn btn-sm btn-outline-secondary" id="themeToggle" type="button" aria-label="Cambiar tema">
+  <i class="bi bi-moon-stars"></i>
+</button>
+
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i>Salir</a>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+<div class="container pb-5">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="flashModalData" class="d-none">
+        {% for category, message in messages %}
+          <div data-category="{{ category }}" data-message="{{ message|e }}"></div>
+        {% endfor %}
+      </div>
+
+      <div class="modal fade" id="flashMessageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-body p-4">
+              <div class="d-flex gap-3">
+                <div id="flashModalIcon" class="flash-modal-icon">
+                  <i class="bi bi-info-circle"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div id="flashModalTitle" class="h5 fw-bold mb-2">Mensaje del sistema</div>
+                  <div id="flashModalMessage" class="text-secondary"></div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+              <button type="button" class="btn btn-primary rounded-3 px-4" data-bs-dismiss="modal">Entendido</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+document.addEventListener('DOMContentLoaded', function () {
+  const flashData = document.querySelectorAll('#flashModalData [data-message]');
+  const flashModalEl = document.getElementById('flashMessageModal');
+
+  if (flashData.length && flashModalEl) {
+    const messages = Array.from(flashData).map(el => ({
+      category: el.dataset.category || 'info',
+      message: el.dataset.message || ''
+    }));
+    let index = 0;
+
+    const titleByCategory = {
+      success: 'Operación exitosa',
+      danger: 'No se pudo completar',
+      error: 'No se pudo completar',
+      warning: 'Atención requerida',
+      info: 'Información'
+    };
+
+    const iconByCategory = {
+      success: 'bi-check-circle',
+      danger: 'bi-x-octagon',
+      error: 'bi-x-octagon',
+      warning: 'bi-exclamation-triangle',
+      info: 'bi-info-circle'
+    };
+
+    const iconBox = document.getElementById('flashModalIcon');
+    const icon = iconBox.querySelector('i');
+    const title = document.getElementById('flashModalTitle');
+    const message = document.getElementById('flashModalMessage');
+    const modal = new bootstrap.Modal(flashModalEl);
+
+    function showMessage() {
+      const current = messages[index];
+      const category = current.category === 'error' ? 'danger' : current.category;
+      iconBox.className = 'flash-modal-icon ' + category;
+      icon.className = 'bi ' + (iconByCategory[current.category] || 'bi-info-circle');
+      title.textContent = titleByCategory[current.category] || 'Mensaje del sistema';
+      message.textContent = current.message;
+      modal.show();
+    }
+
+    flashModalEl.addEventListener('hidden.bs.modal', function () {
+      index += 1;
+      if (index < messages.length) showMessage();
+    });
+
+    showMessage();
+  }
+
+  document.querySelectorAll('form[data-confirm-title], a[data-confirm-title], button[data-confirm-title]').forEach(function (element) {
+    element.addEventListener('click', function (event) {
+      if (element.tagName === 'FORM') return;
+      event.preventDefault();
+      showAppConfirm({
+        title: element.dataset.confirmTitle || 'Confirmar acción',
+        message: element.dataset.confirmMessage || '¿Deseas continuar?',
+        confirmText: element.dataset.confirmText || 'Confirmar',
+        variant: element.dataset.confirmVariant || 'primary',
+        onConfirm: function () {
+          if (element.tagName === 'A') window.location.href = element.href;
+          else if (element.form) element.form.submit();
+        }
+      });
+    });
+  });
+
+  document.querySelectorAll('form[data-confirm-submit="true"]').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      if (form.dataset.confirmed === 'true') return;
+      event.preventDefault();
+      showAppConfirm({
+        title: form.dataset.confirmTitle || 'Confirmar acción',
+        message: form.dataset.confirmMessage || '¿Deseas continuar?',
+        confirmText: form.dataset.confirmText || 'Confirmar',
+        variant: form.dataset.confirmVariant || 'primary',
+        onConfirm: function () {
+          form.dataset.confirmed = 'true';
+          form.submit();
+        }
+      });
+    });
+  });
+});
+
+function showAppConfirm({ title, message, confirmText, variant, onConfirm }) {
+  const modalId = 'appConfirmModal';
+  let modalEl = document.getElementById(modalId);
+
+  if (!modalEl) {
+    modalEl = document.createElement('div');
+    modalEl.id = modalId;
+    modalEl.className = 'modal fade app-confirm-modal';
+    modalEl.tabIndex = -1;
+    modalEl.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body p-4">
+            <div class="d-flex gap-3">
+              <div class="flash-modal-icon warning" id="appConfirmIcon">
+                <i class="bi bi-question-circle"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-2" id="appConfirmTitle"></h5>
+                <p class="text-secondary mb-0" id="appConfirmMessage"></p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 pt-0 px-4 pb-4">
+            <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn rounded-3 px-4" id="appConfirmButton"></button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modalEl);
+  }
+
+  const iconBox = modalEl.querySelector('#appConfirmIcon');
+  const icon = iconBox.querySelector('i');
+  const button = modalEl.querySelector('#appConfirmButton');
+
+  iconBox.className = 'flash-modal-icon ' + (variant === 'danger' ? 'danger' : variant === 'warning' ? 'warning' : 'info');
+  icon.className = 'bi ' + (variant === 'danger' ? 'bi-exclamation-triangle' : 'bi-question-circle');
+  modalEl.querySelector('#appConfirmTitle').textContent = title;
+  modalEl.querySelector('#appConfirmMessage').textContent = message;
+  button.className = 'btn rounded-3 px-4 btn-' + (variant || 'primary');
+  button.textContent = confirmText || 'Confirmar';
+
+  const modal = new bootstrap.Modal(modalEl);
+  const newButton = button.cloneNode(true);
+  button.parentNode.replaceChild(newButton, button);
+  newButton.addEventListener('click', function () {
+    modal.hide();
+    if (typeof onConfirm === 'function') onConfirm();
+  }, { once: true });
+
+  modal.show();
+}
+
+</script>
+<script>
+function setupClipboardUpload({ inputId, zoneSelector, previewId }) {
+  const input = document.getElementById(inputId);
+  const zone = document.querySelector(zoneSelector);
+  const preview = document.getElementById(previewId);
+  if (!input || !zone) return;
+
+  let managedFiles = [];
+  let syncing = false;
+
+  const syncFiles = () => {
+    syncing = true;
+    const dt = new DataTransfer();
+    managedFiles.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+    syncing = false;
+  };
+
+  const renderPreview = () => {
+    if (!preview) return;
+    preview.innerHTML = '';
+    managedFiles.forEach((file, index) => {
+      const item = document.createElement('div');
+      item.className = 'clipboard-chip';
+      item.innerHTML = `<i class="bi bi-paperclip"></i><span>${file.name}</span><button type="button" data-index="${index}" class="btn btn-sm btn-link text-danger p-0">Quitar</button>`;
+      preview.appendChild(item);
+    });
+    preview.querySelectorAll('button[data-index]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        managedFiles.splice(Number(btn.dataset.index), 1);
+        syncFiles();
+        renderPreview();
+      });
+    });
+  };
+
+  const toJpegFile = (file) => new Promise((resolve) => {
+    if (!file.type || !file.type.startsWith('image/') || file.type === 'image/jpeg') {
+      resolve(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          const safeName = (file.name || `captura_${Date.now()}`).replace(/\.[^.]+$/, '');
+          resolve(new File([blob], `${safeName}.jpg`, { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.92);
+      };
+      img.onerror = () => resolve(file);
+      img.src = reader.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+
+  const addFiles = async (files) => {
+    const normalized = [];
+    for (const file of files) normalized.push(await toJpegFile(file));
+    managedFiles = managedFiles.concat(normalized);
+    syncFiles();
+    renderPreview();
+  };
+
+  zone.addEventListener('paste', async (event) => {
+    const items = event.clipboardData?.items || [];
+    const candidates = [];
+    Array.from(items).forEach((item, idx) => {
+      if (item.type && item.type.startsWith('image/')) {
+        const blob = item.getAsFile();
+        if (blob) {
+          const extension = item.type.split('/')[1] || 'png';
+          candidates.push(new File([blob], `captura_${Date.now()}_${idx}.${extension}`, { type: item.type }));
+        }
+      }
+    });
+    if (candidates.length) {
+      event.preventDefault();
+      await addFiles(candidates);
+      zone.classList.add('paste-zone-active');
+      setTimeout(() => zone.classList.remove('paste-zone-active'), 1200);
+    }
+  });
+  zone.addEventListener('dragover', (event) => { event.preventDefault(); zone.classList.add('paste-zone-active'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('paste-zone-active'));
+  zone.addEventListener('drop', async (event) => { event.preventDefault(); zone.classList.remove('paste-zone-active'); await addFiles(Array.from(event.dataTransfer?.files || [])); });
+  input.addEventListener('change', async () => { if (syncing) return; managedFiles = []; await addFiles(Array.from(input.files || [])); });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const flashData = document.querySelectorAll('#flashModalData [data-message]');
+  const flashModalEl = document.getElementById('flashMessageModal');
+
+  if (flashData.length && flashModalEl) {
+    const messages = Array.from(flashData).map(el => ({
+      category: el.dataset.category || 'info',
+      message: el.dataset.message || ''
+    }));
+    let index = 0;
+
+    const titleByCategory = {
+      success: 'Operación exitosa',
+      danger: 'No se pudo completar',
+      error: 'No se pudo completar',
+      warning: 'Atención requerida',
+      info: 'Información'
+    };
+
+    const iconByCategory = {
+      success: 'bi-check-circle',
+      danger: 'bi-x-octagon',
+      error: 'bi-x-octagon',
+      warning: 'bi-exclamation-triangle',
+      info: 'bi-info-circle'
+    };
+
+    const iconBox = document.getElementById('flashModalIcon');
+    const icon = iconBox.querySelector('i');
+    const title = document.getElementById('flashModalTitle');
+    const message = document.getElementById('flashModalMessage');
+    const modal = new bootstrap.Modal(flashModalEl);
+
+    function showMessage() {
+      const current = messages[index];
+      const category = current.category === 'error' ? 'danger' : current.category;
+      iconBox.className = 'flash-modal-icon ' + category;
+      icon.className = 'bi ' + (iconByCategory[current.category] || 'bi-info-circle');
+      title.textContent = titleByCategory[current.category] || 'Mensaje del sistema';
+      message.textContent = current.message;
+      modal.show();
+    }
+
+    flashModalEl.addEventListener('hidden.bs.modal', function () {
+      index += 1;
+      if (index < messages.length) showMessage();
+    });
+
+    showMessage();
+  }
+
+  document.querySelectorAll('form[data-confirm-title], a[data-confirm-title], button[data-confirm-title]').forEach(function (element) {
+    element.addEventListener('click', function (event) {
+      if (element.tagName === 'FORM') return;
+      event.preventDefault();
+      showAppConfirm({
+        title: element.dataset.confirmTitle || 'Confirmar acción',
+        message: element.dataset.confirmMessage || '¿Deseas continuar?',
+        confirmText: element.dataset.confirmText || 'Confirmar',
+        variant: element.dataset.confirmVariant || 'primary',
+        onConfirm: function () {
+          if (element.tagName === 'A') window.location.href = element.href;
+          else if (element.form) element.form.submit();
+        }
+      });
+    });
+  });
+
+  document.querySelectorAll('form[data-confirm-submit="true"]').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      if (form.dataset.confirmed === 'true') return;
+      event.preventDefault();
+      showAppConfirm({
+        title: form.dataset.confirmTitle || 'Confirmar acción',
+        message: form.dataset.confirmMessage || '¿Deseas continuar?',
+        confirmText: form.dataset.confirmText || 'Confirmar',
+        variant: form.dataset.confirmVariant || 'primary',
+        onConfirm: function () {
+          form.dataset.confirmed = 'true';
+          form.submit();
+        }
+      });
+    });
+  });
+});
+
+function showAppConfirm({ title, message, confirmText, variant, onConfirm }) {
+  const modalId = 'appConfirmModal';
+  let modalEl = document.getElementById(modalId);
+
+  if (!modalEl) {
+    modalEl = document.createElement('div');
+    modalEl.id = modalId;
+    modalEl.className = 'modal fade app-confirm-modal';
+    modalEl.tabIndex = -1;
+    modalEl.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body p-4">
+            <div class="d-flex gap-3">
+              <div class="flash-modal-icon warning" id="appConfirmIcon">
+                <i class="bi bi-question-circle"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-2" id="appConfirmTitle"></h5>
+                <p class="text-secondary mb-0" id="appConfirmMessage"></p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 pt-0 px-4 pb-4">
+            <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn rounded-3 px-4" id="appConfirmButton"></button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modalEl);
+  }
+
+  const iconBox = modalEl.querySelector('#appConfirmIcon');
+  const icon = iconBox.querySelector('i');
+  const button = modalEl.querySelector('#appConfirmButton');
+
+  iconBox.className = 'flash-modal-icon ' + (variant === 'danger' ? 'danger' : variant === 'warning' ? 'warning' : 'info');
+  icon.className = 'bi ' + (variant === 'danger' ? 'bi-exclamation-triangle' : 'bi-question-circle');
+  modalEl.querySelector('#appConfirmTitle').textContent = title;
+  modalEl.querySelector('#appConfirmMessage').textContent = message;
+  button.className = 'btn rounded-3 px-4 btn-' + (variant || 'primary');
+  button.textContent = confirmText || 'Confirmar';
+
+  const modal = new bootstrap.Modal(modalEl);
+  const newButton = button.cloneNode(true);
+  button.parentNode.replaceChild(newButton, button);
+  newButton.addEventListener('click', function () {
+    modal.hide();
+    if (typeof onConfirm === 'function') onConfirm();
+  }, { once: true });
+
+  modal.show();
+}
+
+</script>
+{% block scripts %}{% endblock %}
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+
+  function setTheme(theme) {
+    root.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('theme', theme);
+    if (btn) {
+      btn.innerHTML = theme === 'dark'
+        ? '<i class="bi bi-sun"></i>'
+        : '<i class="bi bi-moon-stars"></i>';
+    }
+  }
+
+  setTheme(localStorage.getItem('theme') || 'light');
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      setTheme((root.getAttribute('data-bs-theme') || 'light') === 'dark' ? 'light' : 'dark');
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Mi perfil{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card p-4 bg-white">
+      <h1 class="h5 mb-3"><i class="bi bi-person-circle me-2"></i>Mi perfil</h1>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6"><div class="small text-secondary">Nombre</div><strong>{{ current_user.display_name }}</strong></div>
+        <div class="col-md-6"><div class="small text-secondary">Correo / usuario</div><strong>{{ current_user.email or current_user.username }}</strong></div>
+        <div class="col-md-6"><div class="small text-secondary">Rol</div><strong>{{ ROLE_LABELS.get(current_user.role, current_user.role) }}</strong></div>
+        <div class="col-md-6"><div class="small text-secondary">Estado</div>{% if current_user.is_active %}<span class="badge text-bg-success">Activo</span>{% else %}<span class="badge text-bg-secondary">Inactivo</span>{% endif %}</div>
+      </div>
+      <div class="alert alert-info small"><i class="bi bi-info-circle me-1"></i>Para cambiar tu contraseña con validación de la clave actual usa “Cambiar contraseña”. Si olvidaste la clave, genera una temporal desde aquí o desde el login.</div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="{{ url_for('change_password') }}"><i class="bi bi-key"></i>Cambiar contraseña</a>
+        <form method="post" data-confirm-submit="true" data-confirm-title="Confirmar acción" data-confirm-message="Se generará una nueva clave temporal y se cerrará tu sesión. ¿Continuar?" data-confirm-text="Confirmar" data-confirm-variant="warning">
+          <input type="hidden" name="action" value="send_temp_password">
+          <button class="btn btn-outline-secondary"><i class="bi bi-envelope-arrow-up"></i>Generar nueva clave temporal</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

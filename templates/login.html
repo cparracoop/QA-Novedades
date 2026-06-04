@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card p-4 bg-white">
+      <div class="text-center mb-3">
+        <div class="metric-icon mx-auto mb-3"><i class="bi bi-lock-fill"></i></div>
+        <h1 class="h4 mb-1">Ingreso a QA Novedades</h1>
+        <p class="text-secondary small mb-0">Acceso restringido por usuario, rol y asociación a proyectos.</p>
+      </div>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
+          <input class="form-control" name="username" type="email" autocomplete="username" required autofocus>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-key me-1"></i>Contraseña</label>
+          <input class="form-control" type="password" name="password" required>
+        </div>
+        <button class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right"></i>Ingresar</button>
+        <div class="text-center mt-3"><a href="{{ url_for('reset_password_request') }}" class="small"><i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?</a></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

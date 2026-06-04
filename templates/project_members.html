@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios del proyecto{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <a class="text-decoration-none small" href="{{ url_for('project_detail', project_id=project.id) }}">← Volver al proyecto</a>
+    <h1 class="h4 mt-2 mb-0">Usuarios asociados a {{ project.name }}</h1>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card p-4 bg-white">
+      <h2 class="h5 mb-3">Asociar usuario</h2>
+      <p class="text-secondary small">Solo el creador del proyecto o un administrador global puede asignar o retirar administradores del proyecto.</p>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Usuario</label>
+          <select class="form-select" name="user_id" required>
+            {% for user in users %}
+              <option value="{{ user.id }}">{{ user.display_name }} — {{ user.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Rol en proyecto</label>
+          <select class="form-select" name="project_role" required>
+            {% for role in PROJECT_ROLE_OPTIONS %}
+              <option value="{{ role }}" {% if role == 'Analista QA' %}selected{% endif %} {% if role == 'Administrador del proyecto' and not (current_user.is_admin or project.created_by_id == current_user.id) %}disabled{% endif %}>{{ role }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="can_register_records" id="can_register_records" checked>
+          <label class="form-check-label" for="can_register_records">Puede registrar incidencias</label>
+        </div>
+        <button class="btn btn-primary w-100">Guardar asociación</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card p-4 bg-white">
+      <h2 class="h5 mb-3">Miembros actuales</h2>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>Usuario</th><th>Rol proyecto</th><th>Registra incidencias</th><th></th></tr></thead>
+          <tbody>
+            {% for m in project.members %}
+            <tr>
+              <td>{{ m.user.display_name }}<div class="small text-secondary">{{ m.user.username }}</div></td>
+              <td>{{ m.project_role }}</td>
+              <td>{{ 'Sí' if m.can_register_records else 'No' }}</td>
+              <td>
+                {% if can_user_remove_project_member(project, m) %}
+                <form method="post" action="{{ url_for('project_member_remove', project_id=project.id, membership_id=m.id) }}" data-confirm-submit="true" data-confirm-title="Confirmar acción" data-confirm-message="¿Retirar usuario del proyecto?" data-confirm-text="Confirmar" data-confirm-variant="warning">
+                  <button class="btn btn-sm btn-outline-danger">Retirar</button>
+                </form>
+                {% else %}
+                  <span class="text-secondary small">Protegido</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-secondary">No hay usuarios asociados.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
